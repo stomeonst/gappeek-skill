@@ -1,0 +1,308 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import secrets
+import stat
+import sys
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any, Protocol
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+from uuid import UUID, uuid4
+
+MAXIMUM_RESPONSE_BYTES = 1_000_000
+DEFAULT_API_BASE_URL = "https://temu-ai-pricing-agent-production.up.railway.app"
+INSTALLATION_SCHEMA_VERSION = 1
+
+
+class BridgeError(ValueError):
+    pass
+
+
+class HttpResponse(Protocol):
+    def read(self, amount: int = -1) -> bytes: ...
+
+    def __enter__(self) -> HttpResponse: ...
+
+    def __exit__(self, *args: object) -> None: ...
+
+
+class UrlOpener(Protocol):
+    def __call__(self, request: Request, *, timeout: int) -> HttpResponse: ...
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Submit or read a market analysis")
+    subcommands = parser.add_subparsers(dest="command", required=True)
+    submit = subcommands.add_parser("submit")
+    submit.add_argument("--country", default=None)
+    submit.add_argument("--category", default=None)
+    submit.add_argument("--submarket", default=None)
+    status = subcommands.add_parser("status")
+    status.add_argument("analysis_id")
+    return parser
+
+
+def _base_url(environ: Mapping[str, str]) -> str:
+    value = (
+        environ.get("GAPPEEK_API_BASE_URL", "").strip()
+        or DEFAULT_API_BASE_URL
+    ).rstrip("/")
+    parsed = urlparse(value)
+    if parsed.username or parsed.password or not parsed.hostname:
+        raise BridgeError("服务地址无效")
+    local_hosts = {"localhost", "127.0.0.1", "::1"}
+    if parsed.scheme != "https" and not (
+        parsed.scheme == "http" and parsed.hostname in local_hosts
+    ):
+        raise BridgeError("远程服务地址必须使用 HTTPS")
+    if parsed.query or parsed.fragment:
+        raise BridgeError("服务地址无效")
+    return value
+
+
+def _validate_token(token: str) -> str:
+    if not 16 <= len(token) <= 256 or any(character.isspace() for character in token):
+        raise BridgeError("访问令牌无效")
+    return token
+
+
+def _configured_token(environ: Mapping[str, str]) -> str | None:
+    configured = environ.get("GAPPEEK_API_TOKEN_FILE", "").strip()
+    if not configured:
+        return None
+    path = Path(configured).expanduser()
+    if path.is_symlink() or not path.is_file():
+        raise BridgeError("访问令牌文件无效")
+    mode = stat.S_IMODE(path.stat().st_mode)
+    if mode & (stat.S_IRWXG | stat.S_IRWXO):
+        raise BridgeError("访问令牌文件权限过宽")
+    return _validate_token(path.read_text().strip())
+
+
+def _config_root(environ: Mapping[str, str]) -> Path:
+    configured = environ.get("GAPPEEK_CONFIG_ROOT", "").strip()
+    if configured:
+        root = Path(configured).expanduser()
+    else:
+        xdg = environ.get("XDG_CONFIG_HOME", "").strip()
+        root = (
+            Path(xdg).expanduser() / "gappeek"
+            if xdg
+            else Path.home() / ".config" / "gappeek"
+        )
+    if not root.is_absolute():
+        raise BridgeError("本地配置目录无效")
+    return root
+
+
+def _read_installation(path: Path, *, base_url: str) -> str | None:
+    if path.is_symlink():
+        raise BridgeError("本地安装凭证无效")
+    if not path.exists():
+        return None
+    if not path.is_file():
+        raise BridgeError("本地安装凭证无效")
+    mode = stat.S_IMODE(path.stat().st_mode)
+    if mode & (stat.S_IRWXG | stat.S_IRWXO):
+        raise BridgeError("本地安装凭证权限过宽")
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise BridgeError("本地安装凭证无效") from error
+    if not isinstance(payload, dict) or set(payload) != {
+        "schema_version",
+        "service_origin",
+        "installation_id",
+        "access_token",
+    }:
+        raise BridgeError("本地安装凭证无效")
+    if payload["schema_version"] != INSTALLATION_SCHEMA_VERSION:
+        raise BridgeError("本地安装凭证版本不受支持")
+    if payload["service_origin"] != base_url:
+        raise BridgeError("本地安装凭证与服务地址不匹配")
+    try:
+        UUID(str(payload["installation_id"]))
+    except ValueError as error:
+        raise BridgeError("本地安装凭证无效") from error
+    return _validate_token(str(payload["access_token"]))
+
+
+def _write_installation(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if path.parent.is_symlink() or not path.parent.is_dir():
+        raise BridgeError("本地配置目录无效")
+    os.chmod(path.parent, 0o700)
+    temporary = path.with_name(f".{path.name}.{secrets.token_hex(6)}.tmp")
+    descriptor = -1
+    try:
+        descriptor = os.open(
+            temporary,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+            0o600,
+        )
+        encoded = json.dumps(
+            payload,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode()
+        written = 0
+        while written < len(encoded):
+            written += os.write(descriptor, encoded[written:])
+        os.fsync(descriptor)
+        os.close(descriptor)
+        descriptor = -1
+        os.replace(temporary, path)
+        os.chmod(path, 0o600)
+    except OSError as error:
+        raise BridgeError("无法安全保存本地安装凭证") from error
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        if temporary.exists():
+            temporary.unlink()
+
+
+def _token(
+    environ: Mapping[str, str],
+    *,
+    base_url: str,
+    opener: UrlOpener,
+) -> str:
+    configured = _configured_token(environ)
+    if configured is not None:
+        return configured
+    path = _config_root(environ) / "installation.json"
+    existing = _read_installation(path, base_url=base_url)
+    if existing is not None:
+        return existing
+    installation_id = uuid4()
+    registration_secret = secrets.token_urlsafe(32)
+    registered = _call(
+        url=f"{base_url}/v1/installations",
+        token=None,
+        method="POST",
+        payload={
+            "installation_id": str(installation_id),
+            "registration_secret": registration_secret,
+        },
+        opener=opener,
+    )
+    if registered.get("installation_id") != str(installation_id):
+        raise BridgeError("安装登记响应无效")
+    if registered.get("status") != "active":
+        raise BridgeError("此安装不可用")
+    token = _validate_token(str(registered.get("access_token", "")))
+    _write_installation(
+        path,
+        {
+            "schema_version": INSTALLATION_SCHEMA_VERSION,
+            "service_origin": base_url,
+            "installation_id": str(installation_id),
+            "access_token": token,
+        },
+    )
+    return token
+
+
+def _call(
+    *,
+    url: str,
+    token: str | None,
+    method: str,
+    payload: dict[str, object] | None,
+    opener: UrlOpener,
+) -> dict[str, Any]:
+    encoded = (
+        json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()
+        if payload is not None
+        else None
+    )
+    headers = {"Accept": "application/json"}
+    if token is not None:
+        headers["Authorization"] = f"Bearer {token}"
+    if encoded is not None:
+        headers["Content-Type"] = "application/json"
+    request = Request(url, data=encoded, headers=headers, method=method)
+    try:
+        with opener(request, timeout=30) as response:
+            content = response.read(MAXIMUM_RESPONSE_BYTES + 1)
+    except HTTPError as error:
+        raise BridgeError(f"服务请求失败，状态码 {error.code}") from error
+    except (TimeoutError, URLError, OSError) as error:
+        raise BridgeError("服务连接失败") from error
+    if len(content) > MAXIMUM_RESPONSE_BYTES:
+        raise BridgeError("服务响应过大")
+    try:
+        parsed = json.loads(content)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise BridgeError("服务响应无效") from error
+    if not isinstance(parsed, dict):
+        raise BridgeError("服务响应无效")
+    return parsed
+
+
+def run(
+    argv: Sequence[str],
+    *,
+    environ: Mapping[str, str],
+    opener: UrlOpener,
+) -> dict[str, Any]:
+    arguments = _parser().parse_args(argv)
+    base_url = _base_url(environ)
+    token = _token(environ, base_url=base_url, opener=opener)
+    if arguments.command == "submit":
+        if arguments.submarket is not None and arguments.category is None:
+            raise BridgeError("细分市场需要指定父类目")
+        payload: dict[str, object] = {
+            "category": arguments.category,
+            "submarket": arguments.submarket,
+        }
+        if arguments.country is not None:
+            payload.update(
+                {
+                    "market_scope": "regional",
+                    "country_code": arguments.country.strip().upper(),
+                }
+            )
+        return _call(
+            url=f"{base_url}/v1/analyses",
+            token=token,
+            method="POST",
+            payload=payload,
+            opener=opener,
+        )
+    try:
+        analysis_id = UUID(arguments.analysis_id)
+    except ValueError as error:
+        raise BridgeError("任务编号无效") from error
+    return _call(
+        url=f"{base_url}/v1/analyses/{analysis_id}",
+        token=token,
+        method="GET",
+        payload=None,
+        opener=opener,
+    )
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    try:
+        result = run(
+            sys.argv[1:] if argv is None else argv,
+            environ=os.environ,
+            opener=urlopen,
+        )
+    except BridgeError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

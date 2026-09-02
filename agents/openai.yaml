@@ -1,0 +1,6 @@
+interface:
+  display_name: "GapPeek"
+  short_description: "跨平台发现市场供需缺口与动态机会"
+  default_prompt: "Use $gappeek to find and compare a market opportunity."
+policy:
+  allow_implicit_invocation: true
