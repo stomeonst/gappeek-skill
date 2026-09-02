@@ -45,7 +45,7 @@ description: GapPeek 跨平台市场机会研究。使用已验证的数据查�
 
 状态处理：
 
-1. `queued`、`running`、`pending_review`：说明报告正在处理或复核中。
+1. 只有 `ready` 可以展示报告。`queued`、`running`、`pending_review` 按服务端建议再次查询，不展示中间结果。
 2. `ready`：读取 `references/result-contract.md`，严格按服务返回的报告呈现。
 3. `unavailable`：只回答“数据不足，无法得出结论。”
 
