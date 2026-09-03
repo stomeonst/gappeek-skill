@@ -30,7 +30,7 @@ GapPeek is an independent research product. Market reports do not guarantee sale
 
 ## License
 
-GapPeek is source-available under the [GapPeek Limited Use License](./LICENSE).
+GapPeek is source-available under the [GapPeek Skill License 1.0](./LICENSE).
 You may install and use the unmodified Skill for personal or internal business
-research. Redistribution, resale, competing reuse, and access-control bypass
-are prohibited without prior written permission.
+research. Modification, redistribution, white-labeling, resale, and
+access-control bypass require prior written permission.
