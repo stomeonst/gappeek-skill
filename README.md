@@ -1,152 +1,137 @@
-**English** | [简体中文](./README.zh-CN.md)
+**简体中文** | [English](./README.en.md)
 
 <p align="center">
-  <img src="./assets/gappeek-mark.svg" width="104" alt="GapPeek logo">
+  <img src="./assets/gappeek-mark.svg" width="104" alt="GapPeek 标志">
 </p>
 
 <h1 align="center">GapPeek</h1>
 
 <p align="center">
-  <strong>See the market before you choose the product.</strong><br>
-  Evidence-led market opportunity research for AI agents.
+  <strong>选产品之前，先看清市场。</strong><br>
+  为 AI Agent 提供以证据为基础的市场机会研究。
 </p>
 
-GapPeek gives AI agents a repeatable way to examine market demand, supply,
-competition, pricing, and recent change. It returns structured market evidence
-only when the available data passes its checks. Missing evidence is omitted,
-never replaced with invented values.
+GapPeek 为 AI Agent 提供一套可重复执行的市场研究方法，用于检查市场需求、
+供给、竞争、价格和近期变化。只有数据通过检查时，系统才会返回结构化市场证据。
+缺失证据会被明确省略，不会用虚构数值补齐。
 
-## Install
+## 安装
 
-Send this command to your AI agent, or run it in a terminal:
+把这条指令发送给你的 AI Agent，或在终端运行：
 
 ```bash
 npx skills add stomeonst/gappeek-skill --yes
 ```
 
-Then ask your agent a market question in natural language.
+安装后，直接用自然语言向 Agent 提出市场问题。
 
 ```text
-Use GapPeek to research the US market for compact pet cleaning products.
+使用 GapPeek 研究美国市场中的便携宠物清洁用品。
 ```
 
-## Questions GapPeek can investigate
+## GapPeek 可以研究什么
 
-| Research goal | Example prompt |
+| 研究目标 | 示例提问 |
 | --- | --- |
-| Explore a broad category | `Use GapPeek to examine home storage products in the US and show the strongest related submarkets.` |
-| Validate a product direction | `Use GapPeek to compare demand and seller competition for compact pet cleaning products.` |
-| Inspect pricing | `Use GapPeek to show the observed price level and competition structure for travel organizers.` |
-| Challenge an assumption | `Use GapPeek to check whether demand growth for women's running shoes is accompanied by lower competition.` |
-| Compare nearby markets | `Use GapPeek to compare the supply and demand structure of three related bathroom organization markets.` |
+| 探索一个宽泛类目 | `使用 GapPeek 研究美国的家居收纳产品，并找出证据最强的相关细分市场。` |
+| 验证一个产品方向 | `使用 GapPeek 比较便携宠物清洁用品的需求和卖家竞争。` |
+| 检查价格结构 | `使用 GapPeek 查看旅行收纳用品的观测价格水平和竞争结构。` |
+| 反查一个假设 | `使用 GapPeek 检查女士跑鞋的需求增长是否伴随更低竞争。` |
+| 比较相邻市场 | `使用 GapPeek 比较三个浴室收纳细分市场的供需结构。` |
 
-## What a report contains
+## 报告包含什么
 
-GapPeek keeps the requested direction separate from the market that was
-actually analyzed. A report may include the following evidence when available:
+GapPeek 会把用户提出的方向与实际分析的市场分开呈现。数据可用时，报告会包含：
 
-| Evidence | What it helps you examine |
+| 证据 | 可以帮助你检查什么 |
 | --- | --- |
-| Market scope | The platform, country, category, and observation window behind the result |
-| Demand | Observed demand level, share, and recent change |
-| Supply | Monitored products and sellers in the analyzed scope |
-| Competition | Seller structure, product structure, and concentration signals |
-| Pricing | Observed price level for the monitored market |
-| Related markets | Up to three nearby market directions returned by the service |
-| Evidence boundary | Missing fields, dated observations, and the conclusion grade |
+| 市场范围 | 结果对应的平台、国家、类目和观测窗口 |
+| 需求 | 观测到的需求水平、占比和近期变化 |
+| 供给 | 分析范围内观测到的商品和卖家 |
+| 竞争 | 卖家结构、商品结构和集中度信号 |
+| 价格 | 观测市场中的价格水平 |
+| 相关市场 | 服务返回的最多三个相邻市场方向 |
+| 证据边界 | 缺失字段、观测日期和结论等级 |
 
-## Frozen evidence example
+## 冻结证据案例
 
-The example below is a dated market observation. It demonstrates the report
-structure and does not represent a live market reading.
+下面是一份有明确日期的市场观测，用于展示报告结构，不代表实时市场行情。
 
-### US women's running shoes
+### 美国女士跑鞋
 
-| Case field | Value |
+| 案例字段 | 数值 |
 | --- | --- |
-| Observation date | August 27, 2026 |
-| Conclusion grade | Observation |
+| 观测日期 | 2026 年 8 月 27 日 |
+| 结论等级 | 观察级 |
 
-| Metric | Recorded value |
+| 指标 | 记录值 |
 | --- | ---: |
-| Monthly sales | 10,513 |
-| Monthly sales change | +28.55% |
-| Monitored products | 500 |
-| Monitored sellers | 251 |
-| Leading product concentration | 90.6% |
-| Leading seller concentration | 100% |
-| Median observed price | $13.12 |
+| 月销量 | 10,513 |
+| 月销量变化 | +28.55% |
+| 观测商品 | 500 |
+| 观测卖家 | 251 |
+| 头部商品集中度 | 90.6% |
+| 头部卖家集中度 | 100% |
+| 观测价格中位数 | $13.12 |
 
-The demand signal is positive, while the observed competition structure is
-highly concentrated. GapPeek preserves both facts and keeps the conclusion at
-observation grade. It does not turn this evidence into a promise of sales or
-profit.
+需求信号为正，同时观测到的竞争结构高度集中。GapPeek 会保留这两个事实，
+并把结论维持在观察级，不会把这些证据写成销量或利润承诺。
 
-[Read the annotated example](./examples/us-womens-running-shoes.md)
+[阅读带注释的英文案例](./examples/us-womens-running-shoes.md)
 
-## How it works
+## 工作方式
 
-1. **Describe the question.** Name a market, category, product direction, and
-   country when geography matters.
-2. **GapPeek checks the available evidence.** The service resolves the actual
-   analysis scope and checks whether the report is suitable to return.
-3. **Review the evidence together.** Your agent presents the market size,
-   supply, demand, pricing, recent change, and related markets that passed the
-   report contract.
+1. **描述问题。** 说明市场、类目或产品方向。涉及地区差异时，一并说明国家。
+2. **GapPeek 检查可用证据。** 服务解析实际分析范围，并判断报告能否返回。
+3. **一起复核证据。** Agent 呈现通过报告合同检查的市场规模、供需、价格、
+   近期变化和相关市场。
 
-If the evidence is insufficient, GapPeek returns a data insufficiency result.
-It does not estimate missing counts or silently replace them with zero.
+证据不足时，GapPeek 会返回数据不足结果，不会估算缺失计数，也不会静默填零。
 
-## GapPeek and a one-shot product search
+## GapPeek 与单次商品搜索
 
-| | One-shot product search | GapPeek |
+| | 单次商品搜索 | GapPeek |
 | --- | --- | --- |
-| Starting point | Listings or links matching a query | A defined market question and analysis scope |
-| Main output | Individual products | Structured market evidence |
-| Supply view | Manual counting and interpretation | Product and seller observations when available |
-| Demand view | Signals scattered across results | Demand level, share, and change when available |
-| Competition | Inferred manually | Supply structure and concentration shown together |
-| Missing data | Easy to overlook | Omitted explicitly and never filled with invented values |
-| Decision boundary | Left implicit | Observation date and conclusion grade remain visible |
+| 起点 | 与关键词匹配的商品或链接 | 明确的市场问题和分析范围 |
+| 主要输出 | 单个商品 | 结构化市场证据 |
+| 供给视角 | 依赖人工计数和解释 | 数据可用时呈现商品和卖家观测 |
+| 需求视角 | 信号分散在搜索结果中 | 数据可用时呈现需求水平、占比和变化 |
+| 竞争 | 依赖人工推断 | 同时呈现供给结构和集中度 |
+| 缺失数据 | 容易被忽略 | 明确省略，禁止用虚构数值补齐 |
+| 决策边界 | 通常隐含 | 始终显示观测日期和结论等级 |
 
-GapPeek is designed for evidence-led market screening. It complements product
-search, sourcing, and human judgment rather than replacing them.
+GapPeek 用于以证据为基础的市场初筛，可以配合商品搜索、供应链研究和人工判断使用。
 
-## Report rules
+## 报告规则
 
-The public [result contract](./references/result-contract.md) defines how an
-agent must present GapPeek output:
+公开的[结果合同](./references/result-contract.md)规定了 Agent 呈现 GapPeek 结果的方式：
 
-1. Only reports marked ready by the service can be shown.
-2. The requested market and analyzed market remain separate.
-3. Missing fields are omitted instead of reported as zero.
-4. Related markets are shown only when returned by the service.
-5. Price observations never become profit or sales guarantees.
+1. 只有被服务标记为可返回的报告才能展示。
+2. 用户请求的市场与实际分析的市场必须分开。
+3. 缺失字段必须省略，不能写成零。
+4. 只有服务返回相关市场时才能展示。
+5. 价格观测不能转换成利润或销量保证。
 
-## Privacy and access
+## 隐私与访问
 
-GapPeek does not ask users to provide marketplace passwords, cookies, payment
-details, store credentials, or personal contact information to the Skill. The
-repository contains the installable client and public report contracts. Service
-infrastructure and data systems are not distributed in this repository.
+GapPeek Skill 不要求用户提供市场平台密码、Cookie、支付信息、店铺凭据或个人联系方式。
+这个仓库包含可安装客户端和公开报告合同。服务基础设施与数据系统不在仓库中分发。
 
-GapPeek is an independent research product and is not an official tool of any
-marketplace. Users remain responsible for their own business decisions and
-compliance obligations.
+GapPeek 是独立研究产品，与任何市场平台均无隶属关系。用户需要自行承担经营决策和
+合规责任。
 
-## Repository guide
+## 仓库指南
 
-| Path | Purpose |
+| 路径 | 用途 |
 | --- | --- |
-| [`SKILL.md`](./SKILL.md) | Agent behavior and research workflow |
-| [`scripts/run-hosted-market-screen`](./scripts/run-hosted-market-screen) | Secure client for submitting and reading reports |
-| [`references/result-contract.md`](./references/result-contract.md) | Public report fields and presentation rules |
-| [`references/intake-contract.md`](./references/intake-contract.md) | Public structured intake contract |
-| [`examples/`](./examples) | Dated, annotated report examples |
+| [`SKILL.md`](./SKILL.md) | Agent 行为和研究流程 |
+| [`scripts/run-hosted-market-screen`](./scripts/run-hosted-market-screen) | 用于提交和读取报告的安全客户端 |
+| [`references/result-contract.md`](./references/result-contract.md) | 公开报告字段和呈现规则 |
+| [`references/intake-contract.md`](./references/intake-contract.md) | 公开结构化输入合同 |
+| [`examples/`](./examples) | 带日期和注释的报告案例 |
 
-## License
+## 许可证
 
-GapPeek is source-available under the [GapPeek Skill License 1.0](./LICENSE).
-You may install and use the unmodified Skill for personal or internal business
-research. Modification, redistribution, white-labeling, resale, and
-access-control bypass require prior written permission.
+GapPeek 采用 [GapPeek Skill License 1.0](./LICENSE) 源码可见许可证。
+你可以安装未修改的 Skill，用于个人或企业内部研究。修改、再分发、白标、转售和
+绕过访问控制需要事先取得书面许可。
