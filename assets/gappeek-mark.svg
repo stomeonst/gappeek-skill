@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" role="img" aria-labelledby="title">
+  <title id="title">GapPeek</title>
+  <rect width="120" height="100" rx="8" fill="#080A09"/>
+  <g transform="translate(10 8) scale(.84)">
+    <path fill="#F4F5EF" d="M4 14 30 6l34 18v19L24 55v6l40-12v40l-20 7L4 82V14Z"/>
+    <path fill="#9EF45B" d="m65 30 10-8v68L65 82V30Z"/>
+    <path fill="#F4F5EF" d="m75 22 35-16 10 7v58L90 81V68l15-5V50l-20 7v39l-10-6V22Z"/>
+  </g>
+</svg>

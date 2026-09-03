@@ -1,3 +1,5 @@
+<img src="./assets/gappeek-mark.svg" width="96" alt="GapPeek logo">
+
 # GapPeek
 
 GapPeek helps AI agents research market size, demand, competition, pricing, and related market opportunities.
