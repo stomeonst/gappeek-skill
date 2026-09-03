@@ -27,3 +27,10 @@ Use GapPeek to compare demand, seller competition, and price ranges for travel o
 ```
 
 GapPeek is an independent research product. Market reports do not guarantee sales, profit, or business outcomes.
+
+## License
+
+GapPeek is source-available under the [GapPeek Limited Use License](./LICENSE).
+You may install and use the unmodified Skill for personal or internal business
+research. Redistribution, resale, competing reuse, and access-control bypass
+are prohibited without prior written permission.
