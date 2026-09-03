@@ -1,3 +1,5 @@
+**English** | [简体中文](./README.zh-CN.md)
+
 <p align="center">
   <img src="./assets/gappeek-mark.svg" width="104" alt="GapPeek logo">
 </p>
