@@ -48,6 +48,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Submit or read a market analysis")
     subcommands = parser.add_subparsers(dest="command", required=True)
     submit = subcommands.add_parser("submit")
+    submit.add_argument("--request-id", default=None)
     submit.add_argument(
         "--platform",
         choices=PLATFORMS,
@@ -236,6 +237,7 @@ def _call(
     method: str,
     payload: dict[str, object] | None,
     opener: UrlOpener,
+    request_id: str | None = None,
 ) -> dict[str, Any]:
     encoded = (
         json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()
@@ -243,6 +245,8 @@ def _call(
         else None
     )
     headers = {"Accept": "application/json"}
+    if request_id is not None:
+        headers["Idempotency-Key"] = request_id
     if token is not None:
         headers["Authorization"] = f"Bearer {token}"
     if encoded is not None:
@@ -363,6 +367,12 @@ def run(
 ) -> dict[str, Any]:
     arguments = _parser().parse_args(argv)
     payload = _submit_payload(arguments) if arguments.command == "submit" else None
+    request_id = None
+    if arguments.command == "submit":
+        try:
+            request_id = str(UUID(arguments.request_id)) if arguments.request_id else str(uuid4())
+        except ValueError as error:
+            raise BridgeError("请求编号无效") from error
     base_url = _base_url(environ)
     token = _token(environ, base_url=base_url, opener=opener)
     if arguments.command == "account-link":
@@ -375,13 +385,17 @@ def run(
         )
         return _account_link_result(response)
     if arguments.command == "submit":
-        return _call(
-            url=f"{base_url}/v1/analyses",
-            token=token,
-            method="POST",
-            payload=payload,
-            opener=opener,
-        )
+        try:
+            return _call(
+                url=f"{base_url}/v1/analyses",
+                token=token,
+                method="POST",
+                payload=payload,
+                opener=opener,
+                request_id=request_id,
+            )
+        except BridgeError as error:
+            raise BridgeError(f"{error}；如需重试相同分析，请沿用 --request-id {request_id}") from error
     try:
         analysis_id = UUID(arguments.analysis_id)
     except ValueError as error:

@@ -1,5 +1,13 @@
 # 版本记录 / Changelog
 
+## v0.1.1-20260908.1 · 2026-09-08
+
+- 分析提交携带唯一请求编号，支持通过 `--request-id` 安全重试同一分析。
+- 连接失败时保留重试编号，收到任务编号后只查询状态。
+- 沿用原有提问意图与报告篇幅规则，保留旧版本以便回档。
+
+Analysis submissions carry an idempotency key. Reuse the returned request ID after a connection failure to recover the same analysis without creating another job. Existing question routing and report rules are unchanged.
+
 ## v0.1.1-20260907.6 · 2026-09-07
 
 - 同步跨平台商品研究入口与全球市场报告合同。
