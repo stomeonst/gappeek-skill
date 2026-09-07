@@ -8,8 +8,9 @@ import secrets
 import stat
 import sys
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -36,15 +37,33 @@ class UrlOpener(Protocol):
     def __call__(self, request: Request, *, timeout: int) -> HttpResponse: ...
 
 
+def _open_url(request: Request, *, timeout: int) -> HttpResponse:
+    return cast(HttpResponse, urlopen(request, timeout=timeout))
+
+
+PLATFORMS = ("temu", "tiktok_shop", "ozon", "amazon", "shopee", "walmart")
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Submit or read a market analysis")
     subcommands = parser.add_subparsers(dest="command", required=True)
     submit = subcommands.add_parser("submit")
+    submit.add_argument(
+        "--platform",
+        choices=PLATFORMS,
+        default=None,
+    )
+    submit.add_argument("--mode", choices=("single_platform", "cross_platform"), default=None)
+    submit.add_argument("--query", default=None)
+    submit.add_argument("--current-platform", choices=PLATFORMS, default=None)
+    submit.add_argument("--platforms", choices=PLATFORMS, nargs="+", default=None)
+    submit.add_argument("--market", action="append", default=None)
     submit.add_argument("--country", default=None)
     submit.add_argument("--category", default=None)
     submit.add_argument("--submarket", default=None)
     status = subcommands.add_parser("status")
     status.add_argument("analysis_id")
+    subcommands.add_parser("account-link")
     return parser
 
 
@@ -196,7 +215,7 @@ def _token(
     if registered.get("installation_id") != str(installation_id):
         raise BridgeError("安装登记响应无效")
     if registered.get("status") != "active":
-        raise BridgeError("此安装不可用")
+        raise BridgeError("此安装当前不可用")
     token = _validate_token(str(registered.get("access_token", "")))
     _write_installation(
         path,
@@ -235,7 +254,7 @@ def _call(
     except HTTPError as error:
         raise BridgeError(f"服务请求失败，状态码 {error.code}") from error
     except (TimeoutError, URLError, OSError) as error:
-        raise BridgeError("服务连接失败") from error
+        raise BridgeError("服务暂时无法连接") from error
     if len(content) > MAXIMUM_RESPONSE_BYTES:
         raise BridgeError("服务响应过大")
     try:
@@ -247,6 +266,95 @@ def _call(
     return parsed
 
 
+def _account_link_result(response: dict[str, Any]) -> dict[str, str]:
+    challenge = response.get("challenge")
+    expires_at = response.get("expiresAt")
+    if (
+        not isinstance(challenge, str)
+        or not 32 <= len(challenge) <= 256
+        or any(character.isspace() for character in challenge)
+        or not isinstance(expires_at, str)
+        or not expires_at
+        or len(expires_at) > 64
+    ):
+        raise BridgeError("绑定码响应无效")
+    try:
+        expiration = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise BridgeError("绑定码响应无效") from error
+    if expiration.tzinfo is None or expiration.utcoffset() is None:
+        raise BridgeError("绑定码响应无效")
+    return {"challenge": challenge, "expiresAt": expires_at}
+
+
+
+def _submit_payload(arguments: argparse.Namespace) -> dict[str, object]:
+    if arguments.mode == "cross_platform":
+        if any(value is not None for value in (
+            arguments.platform, arguments.country, arguments.category, arguments.submarket,
+        )):
+            raise BridgeError("全球查询请使用 --query 和可选 --platforms、--market 筛选")
+        query = (arguments.query or "").strip()
+        if not query or len(query) > 120:
+            raise BridgeError("全球查询需要 1 至 120 字的 --query 商品或类目名称")
+        payload: dict[str, object] = {
+            "query_mode": "cross_platform", "query": query,
+            "target_scope": "available_markets",
+        }
+        if arguments.current_platform is not None:
+            payload["current_platform"] = arguments.current_platform
+        if arguments.platforms is not None:
+            if len(set(arguments.platforms)) != len(arguments.platforms):
+                raise BridgeError("平台筛选不能重复")
+            payload["platforms"] = arguments.platforms
+        if arguments.market is not None:
+            markets: list[dict[str, str]] = []
+            for value in arguments.market:
+                parts = value.split(":")
+                if len(parts) == 2:
+                    platform, market_code = parts
+                    scope_kind = "country"
+                elif len(parts) == 3:
+                    platform, scope_kind, market_code = parts
+                else:
+                    raise BridgeError("市场筛选格式为平台:国家代码，区域使用平台:region:区域代码")
+                market_code = market_code.strip().upper()
+                if (platform not in PLATFORMS or scope_kind not in {"country", "region"}
+                    or len(market_code) != 2 or not market_code.isascii()
+                    or not market_code.isalpha()):
+                    raise BridgeError("市场筛选的平台、国家或区域代码无效")
+                if scope_kind == "region" and (platform, market_code) != ("temu", "EU"):
+                    raise BridgeError("当前区域筛选仅接受 temu:region:EU")
+                if scope_kind == "country" and market_code == "EU":
+                    raise BridgeError("EU 是区域，请使用 temu:region:EU")
+                if arguments.platforms is not None and platform not in arguments.platforms:
+                    raise BridgeError("市场筛选与平台筛选冲突")
+                market = {
+                    "platform": platform, "market_code": market_code, "scope_kind": scope_kind,
+                }
+                if market in markets:
+                    raise BridgeError("市场筛选不能重复")
+                markets.append(market)
+            payload["markets"] = markets
+        return payload
+    if any(value is not None for value in (
+        arguments.query, arguments.current_platform, arguments.platforms, arguments.market,
+    )):
+        raise BridgeError("全球查询参数需要 --mode cross_platform")
+    if arguments.platform not in {None, "temu"} and not (arguments.country or "").strip():
+        raise BridgeError("此平台查询需要明确国家，请提供 --country 两位国家代码")
+    if arguments.submarket is not None and arguments.category is None:
+        raise BridgeError("细分市场需要指定父类目")
+    payload = {"category": arguments.category, "submarket": arguments.submarket}
+    if arguments.platform is not None:
+        payload["platform"] = arguments.platform
+    if arguments.country is not None:
+        payload.update({
+            "market_scope": "regional", "country_code": arguments.country.strip().upper(),
+        })
+    return payload
+
+
 def run(
     argv: Sequence[str],
     *,
@@ -254,22 +362,19 @@ def run(
     opener: UrlOpener,
 ) -> dict[str, Any]:
     arguments = _parser().parse_args(argv)
+    payload = _submit_payload(arguments) if arguments.command == "submit" else None
     base_url = _base_url(environ)
     token = _token(environ, base_url=base_url, opener=opener)
+    if arguments.command == "account-link":
+        response = _call(
+            url=f"{base_url}/v1/installations/binding-challenge",
+            token=token,
+            method="POST",
+            payload={},
+            opener=opener,
+        )
+        return _account_link_result(response)
     if arguments.command == "submit":
-        if arguments.submarket is not None and arguments.category is None:
-            raise BridgeError("细分市场需要指定父类目")
-        payload: dict[str, object] = {
-            "category": arguments.category,
-            "submarket": arguments.submarket,
-        }
-        if arguments.country is not None:
-            payload.update(
-                {
-                    "market_scope": "regional",
-                    "country_code": arguments.country.strip().upper(),
-                }
-            )
         return _call(
             url=f"{base_url}/v1/analyses",
             token=token,
@@ -295,7 +400,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = run(
             sys.argv[1:] if argv is None else argv,
             environ=os.environ,
-            opener=urlopen,
+            opener=_open_url,
         )
     except BridgeError as error:
         print(str(error), file=sys.stderr)
