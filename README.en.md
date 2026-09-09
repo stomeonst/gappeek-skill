@@ -4,9 +4,9 @@
 <h1 align="center">GapPeek</h1>
 <p align="center"><strong>Find opportunities through market evidence.</strong></p>
 
-Research product demand, competition and prices across Temu, TikTok Shop, Amazon, Shopee and Walmart.
+Research product demand, competition and prices on Temu, TikTok Shop, Amazon, Shopee or Walmart. Each research task focuses on one selected platform.
 
-[Website](https://gappeek.com/en) · [Sample report](https://gappeek.com/en/sample-report) · [Version history](./CHANGELOG.md)
+[Start web research](https://gappeek.com/en/research) · [Sample report](https://gappeek.com/en/sample-report) · [Version history](./CHANGELOG.md)
 
 ## Install
 
@@ -25,14 +25,14 @@ Find market opportunities for men's wallets on Temu.
 ```
 
 ```text
-Find market opportunities for men's wallets.
+Research men's wallets on Temu in the United States.
 ```
 
 ```text
-Compare pet cleaning products on Amazon and TikTok Shop.
+Research pet cleaning products on Shopee.
 ```
 
-Name a platform to focus the report on it, with relevant opportunities elsewhere as a supplement. Leave the platform open to compare available evidence across platforms and countries. You can also specify a country, restrict the search to one platform, or compare selected platforms.
+Choose one platform for each research task. Name a country to restrict the scope, or examine the supported countries and regions for that platform. If the platform is unclear, your agent will ask you to choose before submitting research.
 
 ## What you can examine
 
@@ -55,7 +55,7 @@ Alternatively, check out a tag and install from the local directory:
 ```bash
 git clone https://github.com/stomeonst/gappeek-skill.git
 cd gappeek-skill
-git checkout v0.1.1-20260909.1
+git checkout v0.1.1-20260909.2
 npx skills add . --yes
 ```
 

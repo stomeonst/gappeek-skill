@@ -1,5 +1,13 @@
 # 版本记录 / Changelog
 
+## v0.1.1-20260909.2 · 2026-09-09
+
+- 每次商品研究只查询用户明确选择的一个平台，国家范围同步限制。
+- 取消新报告的其他平台补充，未指定平台时先请求选择。
+- 客户端提前检查单平台范围，保留已有报告读取、请求编号和账号连接。
+
+Each new product research task targets one selected platform, with matching country filters. Reports focus on that platform. The client validates the selected scope before submission while preserving saved reports and account linking.
+
 ## v0.1.1-20260909.1 · 2026-09-09
 
 - 补齐首次连接、官网注册和设备绑定指引。

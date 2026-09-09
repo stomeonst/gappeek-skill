@@ -1,6 +1,6 @@
 interface:
   display_name: "GapPeek"
-  short_description: "跨平台发现市场供需缺口与动态机会"
-  default_prompt: "Use $gappeek to find and compare a market opportunity."
+  short_description: "每次研究一个明确目标平台，发现商品或类目的市场机会与证据缺口"
+  default_prompt: "Use $gappeek to research men's wallet opportunities on Temu."
 policy:
   allow_implicit_invocation: true

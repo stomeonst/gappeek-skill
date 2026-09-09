@@ -4,9 +4,9 @@
 <h1 align="center">GapPeek</h1>
 <p align="center"><strong>用市场证据发现机会。</strong></p>
 
-GapPeek 帮助你研究商品需求、竞争和价格，比较 Temu、TikTok Shop、Amazon、Shopee、Walmart 的市场机会。
+GapPeek 帮助你研究商品需求、竞争和价格。选择 Temu、TikTok Shop、Amazon、Shopee 或 Walmart，每次研究专注一个平台。
 
-[访问官网](https://gappeek.com) · [查看报告示例](https://gappeek.com/zh/sample-report) · [版本记录](./CHANGELOG.md)
+[开始网页研究](https://gappeek.com/zh/research) · [查看报告示例](https://gappeek.com/zh/sample-report) · [版本记录](./CHANGELOG.md)
 
 ## 安装
 
@@ -25,14 +25,14 @@ npx skills add stomeonst/gappeek-skill --yes
 ```
 
 ```text
-帮我找到男士钱包的蓝海。
+帮我研究美国 Temu 的男士钱包机会。
 ```
 
 ```text
-比较 Amazon 和 TikTok Shop 的宠物清洁用品机会。
+帮我研究 Shopee 的宠物清洁用品机会。
 ```
 
-指定平台时，报告围绕该平台展开，并补充其他平台的相关机会。没有指定平台时，比较不同平台和国家的可用市场证据。也可以指定国家、只看一个平台或比较几个平台。
+每次先确定一个平台，再研究该平台的商品和市场。指定国家时只查询对应范围；未指定国家时查看该平台已支持的国家或地区。没有明确平台时，Agent 会先请你选择。
 
 ## 报告能帮助你判断什么
 
@@ -55,7 +55,7 @@ npx skills add stomeonst/gappeek-skill --yes
 ```bash
 git clone https://github.com/stomeonst/gappeek-skill.git
 cd gappeek-skill
-git checkout v0.1.1-20260909.1
+git checkout v0.1.1-20260909.2
 npx skills add . --yes
 ```
 

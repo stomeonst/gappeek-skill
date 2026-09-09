@@ -47,7 +47,7 @@ def _open_url(request: Request, *, timeout: int) -> HttpResponse:
     return cast(HttpResponse, build_opener(_RejectRedirects()).open(request, timeout=timeout))
 
 
-PLATFORMS = ("temu", "tiktok_shop", "ozon", "amazon", "shopee", "walmart")
+PLATFORMS = ("temu", "tiktok_shop", "amazon", "shopee", "walmart")
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -310,20 +310,19 @@ def _submit_payload(arguments: argparse.Namespace) -> dict[str, object]:
         if any(value is not None for value in (
             arguments.platform, arguments.country, arguments.category, arguments.submarket,
         )):
-            raise BridgeError("全球查询请使用 --query 和可选 --platforms、--market 筛选")
+            raise BridgeError("商品查询请使用 --query、唯一 --platforms 和可选 --market 筛选")
         query = (arguments.query or "").strip()
         if not query or len(query) > 120:
-            raise BridgeError("全球查询需要 1 至 120 字的 --query 商品或类目名称")
+            raise BridgeError("商品查询需要 1 至 120 字的 --query 商品或类目名称")
+        if not arguments.platforms or len(arguments.platforms) != 1:
+            raise BridgeError("请先选择一个目标平台，通过 --platforms 提交；每次仅支持一个平台")
+        if arguments.current_platform is not None:
+            raise BridgeError("经营背景保留在对话中，请省略 --current-platform，用 --platforms 指定目标平台")
         payload: dict[str, object] = {
             "query_mode": "cross_platform", "query": query,
             "target_scope": "available_markets",
+            "platforms": arguments.platforms,
         }
-        if arguments.current_platform is not None:
-            payload["current_platform"] = arguments.current_platform
-        if arguments.platforms is not None:
-            if len(set(arguments.platforms)) != len(arguments.platforms):
-                raise BridgeError("平台筛选不能重复")
-            payload["platforms"] = arguments.platforms
         if arguments.market is not None:
             markets: list[dict[str, str]] = []
             for value in arguments.market:
@@ -344,7 +343,7 @@ def _submit_payload(arguments: argparse.Namespace) -> dict[str, object]:
                     raise BridgeError("当前区域筛选仅接受 temu:region:EU")
                 if scope_kind == "country" and market_code == "EU":
                     raise BridgeError("EU 是区域，请使用 temu:region:EU")
-                if arguments.platforms is not None and platform not in arguments.platforms:
+                if platform not in arguments.platforms:
                     raise BridgeError("市场筛选与平台筛选冲突")
                 market = {
                     "platform": platform, "market_code": market_code, "scope_kind": scope_kind,
@@ -357,8 +356,10 @@ def _submit_payload(arguments: argparse.Namespace) -> dict[str, object]:
     if any(value is not None for value in (
         arguments.query, arguments.current_platform, arguments.platforms, arguments.market,
     )):
-        raise BridgeError("全球查询参数需要 --mode cross_platform")
-    if arguments.platform not in {None, "temu"} and not (arguments.country or "").strip():
+        raise BridgeError("商品查询参数需要 --mode cross_platform")
+    if arguments.platform is None:
+        raise BridgeError("请先选择一个目标平台，通过 --platform 明确提交统计查询")
+    if arguments.platform != "temu" and not (arguments.country or "").strip():
         raise BridgeError("此平台查询需要明确国家，请提供 --country 两位国家代码")
     if arguments.submarket is not None and arguments.category is None:
         raise BridgeError("细分市场需要指定父类目")
@@ -366,8 +367,13 @@ def _submit_payload(arguments: argparse.Namespace) -> dict[str, object]:
     if arguments.platform is not None:
         payload["platform"] = arguments.platform
     if arguments.country is not None:
+        country = arguments.country.strip().upper()
+        if len(country) != 2 or not country.isascii() or not country.isalpha():
+            raise BridgeError("国家筛选需要两位国家代码")
+        if country == "EU":
+            raise BridgeError("EU 是区域，商品查询请使用 --mode cross_platform 和 --market temu:region:EU")
         payload.update({
-            "market_scope": "regional", "country_code": arguments.country.strip().upper(),
+            "market_scope": "regional", "country_code": country,
         })
     return payload
 
