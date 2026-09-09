@@ -16,6 +16,8 @@ Send this command to your AI agent or run it in a terminal:
 npx skills add stomeonst/gappeek-skill --yes
 ```
 
+After installation, register on GapPeek and verify your email. Ask your agent to connect GapPeek, then enter its binding code on the [Devices page](https://gappeek.com/en/account/devices). Research requires account credits. Restart your agent if it has not discovered the new Skill.
+
 ## Ask a market question
 
 ```text
@@ -53,7 +55,7 @@ Alternatively, check out a tag and install from the local directory:
 ```bash
 git clone https://github.com/stomeonst/gappeek-skill.git
 cd gappeek-skill
-git checkout v0.1.1-20260908.1
+git checkout v0.1.1-20260909.1
 npx skills add . --yes
 ```
 

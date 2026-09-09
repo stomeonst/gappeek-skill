@@ -27,11 +27,10 @@
 
 提交和 status 使用相同 analysis_id 流程。候选、供货与讨论材料以服务实际返回为准；跨市场查询不代表所有平台已接入或启动实时付费采集。
 
-截至 2026-09-07，“男士钱包”已在 32 个市场范围取得真实首屏样本。统计截止日未知，商品相关性未统一，Amazon 日本市场价格未核实；该次样本不代表其他商品已有数据，也不构成全球蓝海排序或线上发布。实际覆盖与结论以 `ready` 报告为准。
 
 ## 托管市场查询
 
-`scripts/run-hosted-market-screen submit` 使用下列参数。禁止把实验登记字段混入市场查询。
+`scripts/run-hosted-market-screen submit` 使用下列参数。仅发送下表的查询字段。
 
 | CLI 参数 | 请求字段 | 规则 |
 | --- | --- | --- |
@@ -41,45 +40,3 @@
 | `--submarket` | `submarket` | 已知父类目时传入细分方向，须同时指定 `--category`。 |
 
 本节旧入口用于指定平台的整体市场、类目统计或已知父子类目报告。商品机会问题按前面的全球商品入口和意图筛选处理，不能因提到平台就自动改成旧类目查询。旧入口先确定平台，只澄清缺失的信息；非 Temu 查询不得默认美国或使用 Temu 整体市场范围，未知平台不得回落到 Temu。平台入口不代表该平台已有可用报告，按服务返回状态处理。
-
-## M1 实验登记
-
-以下结构仅用于实验登记。数组没有内容时使用空数组。美元价格偏好未知时使用 `null`。禁止添加联系方式、姓名、店铺标识、登录信息或其他个人身份字段。
-
-```json
-{
-  "schema_version": "1.0",
-  "intake_kind": "m1_free_skill",
-  "requested_at": "2026-08-12T10:00:00+08:00",
-  "operating_scope": "us",
-  "seller_stage": "preparing",
-  "first_order_budget_cny": 5000,
-  "fulfillment_model": "semi_managed",
-  "maximum_package_class": "small",
-  "excluded_traits": [
-    "liquid"
-  ],
-  "qualification_ids": [],
-  "current_categories": [
-    "women-clothing"
-  ],
-  "preferred_price_min_usd": 10,
-  "preferred_price_max_usd": 30,
-  "research_consent": true
-}
-```
-
-## 固定值
-
-- `schema_version`：`1.0`
-- `intake_kind`：`m1_free_skill`
-- `operating_scope`：`us`、`global` 或 `both`
-- `research_consent`：只有用户明确同意时才能设为 `true`
-
-## 输出规则
-
-1. 只输出一个符合合同的 JSON 对象。
-2. 数组值去重，禁止空字符串。
-3. 最低价格不得高于最高价格。
-4. 不确定的可选价格使用 `null`，其他必填项继续向用户确认。
-5. 生成 Intake 不代表已经入选实验，也不代表报告已经批准。

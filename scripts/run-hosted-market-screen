@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Protocol, cast
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 from uuid import UUID, uuid4
 
 MAXIMUM_RESPONSE_BYTES = 1_000_000
@@ -37,8 +37,14 @@ class UrlOpener(Protocol):
     def __call__(self, request: Request, *, timeout: int) -> HttpResponse: ...
 
 
+class _RejectRedirects(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # An API redirect must never forward an installation credential.
+        raise BridgeError("服务地址发生跳转，请停止并联系 GapPeek 支持")
+
+
 def _open_url(request: Request, *, timeout: int) -> HttpResponse:
-    return cast(HttpResponse, urlopen(request, timeout=timeout))
+    return cast(HttpResponse, build_opener(_RejectRedirects()).open(request, timeout=timeout))
 
 
 PLATFORMS = ("temu", "tiktok_shop", "ozon", "amazon", "shopee", "walmart")
@@ -256,7 +262,14 @@ def _call(
         with opener(request, timeout=30) as response:
             content = response.read(MAXIMUM_RESPONSE_BYTES + 1)
     except HTTPError as error:
-        raise BridgeError(f"服务请求失败，状态码 {error.code}") from error
+        messages = {
+            401: "安装凭据无效或已撤销，请重新连接 GapPeek",
+            402: "积分不足，请前往 https://gappeek.com/zh/pricing 购买积分后再提交",
+            403: "账号未绑定或当前无访问权限，请登录 https://gappeek.com/zh/account/devices 完成设备绑定并检查账号状态",
+            429: "请求过于频繁，请稍后再试，不要连续重试",
+            503: "服务暂时不可用，请稍后再试；不要重复提交同一研究",
+        }
+        raise BridgeError(messages.get(error.code, f"服务请求失败，状态码 {error.code}")) from error
     except (TimeoutError, URLError, OSError) as error:
         raise BridgeError("服务暂时无法连接") from error
     if len(content) > MAXIMUM_RESPONSE_BYTES:

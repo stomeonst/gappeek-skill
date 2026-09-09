@@ -1,5 +1,13 @@
 # 版本记录 / Changelog
 
+## v0.1.1-20260909.1 · 2026-09-09
+
+- 补齐首次连接、官网注册和设备绑定指引。
+- 清理过时实验登记与开发进度，保留实际报告范围和证据要求。
+- 拒绝 API 跳转，保护本机安装凭据；账号权限、余额不足和服务不可用时提供明确提示。
+
+This release clarifies first-time account linking, removes obsolete experiment notes, blocks API redirects, and explains service errors without exposing response internals.
+
 ## v0.1.1-20260908.1 · 2026-09-08
 
 - 分析提交携带唯一请求编号，支持通过 `--request-id` 安全重试同一分析。

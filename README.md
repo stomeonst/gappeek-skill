@@ -16,6 +16,8 @@ GapPeek 帮助你研究商品需求、竞争和价格，比较 Temu、TikTok Sho
 npx skills add stomeonst/gappeek-skill --yes
 ```
 
+安装后，在官网注册并验证邮箱。让 Agent“连接 GapPeek”，将它返回的绑定码填入[设备绑定页](https://gappeek.com/zh/account/devices)。账号有积分后即可提交研究。若 Agent 尚未识别新 Skill，请重新启动 Agent。
+
 ## 直接说出你的问题
 
 ```text
@@ -53,7 +55,7 @@ npx skills add stomeonst/gappeek-skill --yes
 ```bash
 git clone https://github.com/stomeonst/gappeek-skill.git
 cd gappeek-skill
-git checkout v0.1.1-20260908.1
+git checkout v0.1.1-20260909.1
 npx skills add . --yes
 ```
 
