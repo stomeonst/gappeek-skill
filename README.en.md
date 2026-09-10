@@ -55,7 +55,7 @@ Alternatively, check out a tag and install from the local directory:
 ```bash
 git clone https://github.com/stomeonst/gappeek-skill.git
 cd gappeek-skill
-git checkout v0.1.1-20260909.2
+git checkout v0.1.1-20260910.3
 npx skills add . --yes
 ```
 
