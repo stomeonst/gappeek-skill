@@ -62,6 +62,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     submit.add_argument("--mode", choices=("single_platform", "cross_platform"), default=None)
     submit.add_argument("--query", default=None)
+    submit.add_argument("--research-subject", choices=("product", "category"), default="product")
     submit.add_argument("--current-platform", choices=PLATFORMS, default=None)
     submit.add_argument("--platforms", choices=PLATFORMS, nargs="+", default=None)
     submit.add_argument("--market", action="append", default=None)
@@ -321,6 +322,7 @@ def _submit_payload(arguments: argparse.Namespace) -> dict[str, object]:
             raise BridgeError("经营背景保留在对话中，请省略 --current-platform，用 --platforms 指定目标平台")
         payload: dict[str, object] = {
             "query_mode": "cross_platform", "query": query,
+            "research_subject": getattr(arguments, "research_subject", "product"),
             "target_scope": "available_markets",
             "platforms": arguments.platforms,
         }

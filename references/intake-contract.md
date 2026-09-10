@@ -13,7 +13,7 @@
 “帮我找到 Temu 的男士钱包蓝海”使用 `submit --mode cross_platform --query "男士钱包" --platforms temu`。`cross_platform` 沿用已有 API 模式名，唯一 `platforms` 将实际查询限制为单个平台，不新增模式或意图字段。请求为：
 
 ```json
-{"query_mode":"cross_platform","query":"男士钱包","target_scope":"available_markets","platforms":["temu"]}
+{"query_mode":"cross_platform","research_subject":"product","query":"男士钱包","target_scope":"available_markets","platforms":["temu"]}
 ```
 
 | CLI 参数 | 请求字段 | 规则 |
@@ -39,3 +39,7 @@
 | `--submarket` | `submarket` | 已知父类目时传入细分方向，须同时指定 `--category`。 |
 
 本节兼容入口只用于明确指定平台的整体市场、类目统计或已知父子类目报告，沿用不发送 `query_mode` 的旧字段格式。商品机会问题使用前面的单平台商品入口。只澄清缺失信息；非 Temu 查询不得默认美国或使用 Temu 整体市场范围，未知平台不得回落到 Temu。平台入口不代表该平台已有可用报告，按服务返回状态处理。
+
+## 商品与类目研究
+
+商品问题默认使用 `--research-subject product`，完整保留品牌、型号、材质等限定，不将商品名称改成宽类目。明确研究类目时使用 `--research-subject category`。旧历史请求未带字段时沿用原类目语义。商品搜索按平台合同连续分页；报告中的关键词样本不代表全类目，标题无法核对的商品保留待确认。
