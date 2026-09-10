@@ -79,7 +79,7 @@
 
 | 字段 | 显示规则 |
 | --- | --- |
-| `coverage_basis` | `top_80_products`、`top_100_products`、`top_300_products`、`top_500_products` 分别显示 Top 80、100、300、500 商品样本；`bounded_category_sample` 显示“已观测的类目商品样本”；`category_aggregate` 仅显示“类目聚合”。实际观测数量按报告值显示，不补到上限，也不称全类目或全平台总量。 |
+| `coverage_basis` | `top_80_products`、`top_100_products`、`top_300_products`、`top_500_products` 分别显示 Top 80、100、300、500 商品样本；`bounded_category_sample` 显示“已观测的类目商品样本”；`bounded_keyword_sample` 显示“已观测的关键词结果样本”；`category_aggregate` 仅显示“类目聚合”。实际观测数量按报告值显示，不补到上限，也不称全类目或全平台总量。 |
 | `sales_window` | `monthly` 显示“销量为月度指标”；`rolling_30_days` 显示“近 30 日销量”；`explicit_date_range` 显示“统计期销量”，并列出 `sales_period_start`、`sales_period_end` 的实际起止日期。月度字段名不改变所声明的窗口。 |
 | `sales_trend_window` | `monthly_change` 显示“月度销量趋势”；`last_two_complete_months` 显示“完整月份销量环比”，并列出 `trend_period_from`、`trend_period_to` 的两个实际月份。禁止把完整月环比称为近 30 日环比。 |
 | `fulfillment_scope` | 返回 `fbo` 时显示“Ozon 仓配范围”；`fbo_and_fbs` 显示“Ozon 仓配与卖家发货范围”。缺失时省略，不自行补全。 |
@@ -90,11 +90,13 @@
 
 市场行含 `category_research` 时，按本节展开；缺少该字段的旧报告不补新内容。保持目标平台和市场范围，所有数量与趋势仅来自返回字段。
 
-- `selected_category` 显示类目名称与路径。`metrics` 是对应头部范围的类目指标，`basis=top_100_products` 时明确其 Top 100 口径；其中 `seller_count` 为该范围卖家统计，不代替原市场行的样本卖家数。新品字段单独按 `new_product_basis` 标注范围。
-- `pagination.unique_count` 是本次分页去重商品数。显示实际页数、`stop_reason` 和观测时间；`budget_limit` 表示达到本次采集预算，`short_page` 表示返回未满一页，`no_data_page` 表示本次查询返回无数据，`repeated_page` 表示后续页没有新增商品。以上状态均不能推出全平台全部商品已取得。`complete_market_coverage=false` 时禁止称全类目全集。
+- `selected_category` 存在时显示类目名称与路径。`collection_scope` 为 `recently_updated_category_products` 时按 `updated_within_days` 说明最近更新范围；`keyword_search_results` 时按 `search_history_days` 说明关键词搜索结果的时间范围，类目可以为空，不得称类目全集。
+- `metrics.basis` 按实际 Top 80、100、300、500、600 或 `returned_head_sample` 范围显示；`derivation=returned_head_aggregate` 表示按本次返回榜单汇总，不称全市场统计。`seller_count` 只对应该范围。新品依 `new_product_basis`、`new_product_age_days` 或 `new_product_age_months` 标注，不将三个月写成30天或90天。
+- `pagination.unique_count` 是本次分页去重商品数。显示实际页数、`stop_reason` 和观测时间；`budget_limit` 表示达到本次采集预算，`short_page` 表示返回未满一页，`no_data_page` 表示本次查询返回无数据，`repeated_page` 表示后续页没有新增商品，`reported_last_page` 表示已到接口声明末页，`endpoint_limit` 表示接口可访问上限。以上状态均不能推出全平台全部商品已取得。`complete_market_coverage=false` 时禁止称全类目全集。
 - `head_sample` 为独立榜单返回，按实际 `unique_count` 展示，不补成声明的上限，也不与分页商品数相加。两者可以重叠，类目指标与商品重算指标也不可强行对齐。
 - `products` 是本次采集的商品。标题、类目归属、价格和销量不等于已核实图片、尺寸或材质；保持匹配、相邻、排除和不确定分类，不能因某组只有一件就判断竞争低。
-- `trends` 保留商品、实际记录月份与数值。`statistics_window=unknown` 时只呈现记录，不计算同比、环比或推定日销量。尚未结束的月份不作为完整月，过旧趋势不描述为最新市场表现。缺失值不补零。
+- `product_identity_basis=parent_listing_when_available` 时说明同一父商品已合并，不将变体重复计销量。
+- `trends` 保留对应商品和实际日期值；`category_trends` 单独显示类目与 TopN 范围，禁止挪作商品趋势。`statistics_window=unknown` 只呈现记录，不计算同比、环比或推定日销量；`rolling_30_days` 表示各观测日对应近30天窗口，不能当作当日销量；`calendar_month` 按自然月显示。尚未结束的月份不作为完整月，过去月份完整性为未知时不得补成完整。`listed_price` 只代表标价记录，不能写成平均价格。过旧趋势不描述为最新市场表现，缺失值不补零。
 
 仅依所列需求、竞争、新品和价格证据解释机会。报告没有返回明确机会结论时，不自行生成蓝海排名、利润或成功概率。不要自动追加查询来补齐缺口。
 

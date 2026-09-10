@@ -1,5 +1,14 @@
 # 版本记录 / Changelog
 
+## v0.1.1-20260910.2 · 2026-09-10
+
+- 五平台报告按实际范围分别显示类目榜单、分页商品或关键词结果，不将样本数量写成全市场数量。
+- 显示各自新品窗口、类目历史和商品历史，区分自然月、近30天窗口与未确认窗口。
+- 沿用已明确的目标国家或区域；范围过大时给出明确提示，保留用户指定国家，不自动增加查询。
+- 保留账号连接、旧报告读取及各版本回档，公开客户端不包含服务端实现。
+
+Reports support platform-specific category lists, paginated samples and keyword results with explicit coverage and statistical windows. Category and product histories remain separate. An over-broad scope prompts for a target country or region before collection. Account linking, historical reports and rollback versions remain available.
+
 ## v0.1.1-20260910.1 · 2026-09-10
 
 - 新增可选类目证据合同，Temu 报告可分别展示类目头部指标、分页商品与参考榜单。

@@ -50,10 +50,10 @@ description: GapPeek 单平台市场机会研究，每次只研究用户明确�
 
 真实经营背景只保留在对话中，不发送 `--current-platform`，也不新增请求字段。商品机会研究沿用底层 `cross_platform` 模式名，但必须传入唯一 `--platforms`。平台、国家和“帮我找蓝海”等动作文字不拼入商品关键词。
 
-Temu 男士钱包调用：
-`scripts/run-hosted-market-screen submit --mode cross_platform --query "男士钱包" --platforms temu`
+用户已明确 Temu 欧洲区域的男士钱包调用：
+`scripts/run-hosted-market-screen submit --mode cross_platform --query "男士钱包" --platforms temu --market temu:region:EU`
 
-用户明确限定国家时，必须加该目标平台的 `--market`，严格只查这些国家；例如 Amazon 美国使用 `--platforms amazon --market amazon:US`。多个明确国家可以重复 `--market`，所有市场都必须属于同一目标平台。Temu 欧洲区域使用 `--platforms temu --market temu:region:EU`，EU 属于区域，禁止标成国家。没有指定国家时不默认美国，使用目标平台已核实的市场范围，并在报告中说明实际覆盖。没有对应证据时说明缺口，不改查其他国家或平台，不缩减用户明确范围后冒充完整覆盖。
+用户明确限定国家时，必须加该目标平台的 `--market`，严格只查这些国家；例如 Amazon 美国使用 `--platforms amazon --market amazon:US`。多个明确国家可以重复 `--market`，所有市场都必须属于同一目标平台。Temu 欧洲区域使用 `--platforms temu --market temu:region:EU`，EU 属于区域，禁止标成国家。没有指定国家时不默认美国，提交目标平台已核实的市场范围；服务若提示需明确目标国家，则询问本次国家或区域后再提交，该提示发生在采集与扣积分之前。前文已明确的范围直接沿用。多个明确国家完整保留；服务提示范围过大时，请用户选择本次研究范围，禁止静默删除国家。没有对应证据时说明缺口，不改查其他国家或平台，不缩减用户明确范围后冒充完整覆盖。
 
 已明确当前数据不足的平台，先按使用边界回答，不自动换平台。仅查看旧任务时使用原 `analysis_id` 和报告实际范围，不重新提交或推测旧研究目标。
 

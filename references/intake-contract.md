@@ -22,7 +22,7 @@
 | `--platforms` | `platforms` | 必填且仅一个值：`temu`、`tiktok_shop`、`amazon`、`shopee`、`walmart`。缺失、重复或多个值均拒绝。Ozon 当前不提供新查询入口。 |
 | `--market` | `markets` | 只接受目标平台的市场。用户明确限定国家或区域时必须传入，不能扩展至其他国家。例如 `--platforms amazon --market amazon:US` 对应 `platform=amazon, market_code=US, scope_kind=country`；`--platforms temu --market temu:region:EU` 对应欧洲区域，EU 不能当作国家。用户明确要求同平台多个市场时可重复，不得重复同一市场。 |
 
-未指定国家时不要求补填，不默认美国，使用目标平台已核实市场范围。明确的国家或区域缺少证据时说明不足，不改查其他范围。筛选不创建新的数据能力。`--current-platform` 在新提交中拒绝使用；商品参数与旧统计入口的 `--platform`、`--country`、`--category`、`--submarket` 互斥。这些入口校验在安装登记及网络请求前完成。
+未指定国家时不默认美国，可提交目标平台已核实市场范围；服务提示需要明确国家时再询问本次国家或区域。前文已明确的范围直接沿用。多个明确国家须完整传入，服务若提示范围过大则请用户缩小本次范围，禁止静默删减。范围不合要求时服务返回 422，研究尚未开始且未扣积分。明确的国家或区域缺少证据时说明不足，不改查其他范围。筛选不创建新的数据能力。`--current-platform` 在新提交中拒绝使用；商品参数与旧统计入口的 `--platform`、`--country`、`--category`、`--submarket` 互斥。这些入口校验在安装登记及网络请求前完成。
 
 提交后使用返回的 `analysis_id` 查询状态。`status` 不重新提交，也不按新的平台入口改写旧报告；已有多平台报告、Ozon 报告和旧请求字段仍按原数据读取。
 
