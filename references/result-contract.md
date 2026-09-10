@@ -86,6 +86,18 @@
 
 例如，Top 300 且 `sales_window=monthly` 时显示“Top 300 商品样本，销量为月度指标”；同一样本在 `rolling_30_days` 时显示“Top 300 商品样本，近 30 日销量”。两次观测时间与销量统计期分别标注，禁止互相替换。
 
+## 类目研究证据
+
+市场行含 `category_research` 时，按本节展开；缺少该字段的旧报告不补新内容。保持目标平台和市场范围，所有数量与趋势仅来自返回字段。
+
+- `selected_category` 显示类目名称与路径。`metrics` 是对应头部范围的类目指标，`basis=top_100_products` 时明确其 Top 100 口径；其中 `seller_count` 为该范围卖家统计，不代替原市场行的样本卖家数。新品字段单独按 `new_product_basis` 标注范围。
+- `pagination.unique_count` 是本次分页去重商品数。显示实际页数、`stop_reason` 和观测时间；`budget_limit` 表示达到本次采集预算，`short_page` 表示返回未满一页，`no_data_page` 表示本次查询返回无数据，`repeated_page` 表示后续页没有新增商品。以上状态均不能推出全平台全部商品已取得。`complete_market_coverage=false` 时禁止称全类目全集。
+- `head_sample` 为独立榜单返回，按实际 `unique_count` 展示，不补成声明的上限，也不与分页商品数相加。两者可以重叠，类目指标与商品重算指标也不可强行对齐。
+- `products` 是本次采集的商品。标题、类目归属、价格和销量不等于已核实图片、尺寸或材质；保持匹配、相邻、排除和不确定分类，不能因某组只有一件就判断竞争低。
+- `trends` 保留商品、实际记录月份与数值。`statistics_window=unknown` 时只呈现记录，不计算同比、环比或推定日销量。尚未结束的月份不作为完整月，过旧趋势不描述为最新市场表现。缺失值不补零。
+
+仅依所列需求、竞争、新品和价格证据解释机会。报告没有返回明确机会结论时，不自行生成蓝海排名、利润或成功概率。不要自动追加查询来补齐缺口。
+
 ## 事实样本报告
 
 外层 `report_kind=market_snapshot` 且内层 `snapshot.report_kind=sample_facts` 使用本节。先显示平台、国家、实际分析范围、顶层 `observed_at`、币种及上述覆盖和统计窗口，再按服务顺序逐项显示 `snapshot.markets`。事实报告不排名，不改成 Top 3，不补候选或额外计算指标。

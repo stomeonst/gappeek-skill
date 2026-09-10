@@ -1,5 +1,14 @@
 # 版本记录 / Changelog
 
+## v0.1.1-20260910.1 · 2026-09-10
+
+- 新增可选类目证据合同，Temu 报告可分别展示类目头部指标、分页商品与参考榜单。
+- 保留实际采集页数和停止原因；商品样本不称全类目，榜单与分页商品不相加。
+- 商品历史记录保留日期标记，统计窗口未知时不补算增长，缺失值不补零。
+- 其余平台沿用现有报告行为，保留历史报告读取和账号连接。
+
+This release adds optional category evidence for Temu reports, keeping category head metrics, paginated samples and reference lists separate. Reports retain observed page counts and stop reasons without claiming complete category coverage or adding overlapping samples. Historical observations keep their date labels; unknown measurement windows do not support calculated growth. Other platforms retain their existing report behavior, with saved reports and account linking preserved.
+
 ## v0.1.1-20260909.2 · 2026-09-09
 
 - 每次商品研究只查询用户明确选择的一个平台，国家范围同步限制。
